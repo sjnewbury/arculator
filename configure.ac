@@ -22,7 +22,7 @@ if test "$enable_debug" = "yes"; then
    CFLAGS_BUILD="-Wall -O0 -g -D_DEBUG -DDEBUG_LOG"
    AC_MSG_RESULT([yes])
 else
-   CFLAGS_BUILD="-O3"
+   CFLAGS_BUILD="$CFLAGS"
    AC_MSG_RESULT([no])
 fi
 
