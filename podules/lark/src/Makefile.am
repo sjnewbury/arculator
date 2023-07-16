@@ -45,6 +45,10 @@ endif
 liblark_la_CFLAGS = $(SDL_CFLAGS) -I../../../src -I../../common/midi -I../../common/sound -I../../common/uart
 liblark_la_LIBADD = @LIBS@
 
+if OS_LINUX
+liblark_la_LIBADD += -lmvec
+endif
+
 if OS_WINDOWS
 liblark_la_LIBADD += -lwinmm
 endif
