@@ -68,7 +68,7 @@ bool App::OnInit()
 		exit(-1);
 	}
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		wxMessageBox("SDL could not be initialised: " + wxString(SDL_GetError()), "Arculator", wxOK | wxCENTRE | wxSTAY_ON_TOP);
 		exit(-1);
 	}
@@ -127,6 +127,7 @@ wxMenu* Frame::GetMenu()
 
 void Frame::Quit(bool stop_emulator)
 {
+	SDL_Quit();
 	Destroy();
 }
 

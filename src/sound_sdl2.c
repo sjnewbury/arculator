@@ -2,6 +2,7 @@
 #include "plat_sound.h"
 #include "disc.h"
 #include "sound.h"
+#include "arc.h"
 
 #define DDNOISE_FREQ 44100
 #define OUTPUT_FREQ 48000
@@ -11,6 +12,13 @@ static SDL_AudioStream *ddnoise_stream;
 
 void sound_dev_init(void)
 {
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		rpclog("sound_sdl2: SDL could not initialise audio support: %s\n", SDL_GetError());
+		audio_device = 0;
+		ddnoise_stream = NULL;
+		return;
+	}
+
 	SDL_AudioSpec audio_spec = {0};
 
 	audio_spec.freq = OUTPUT_FREQ;
@@ -21,6 +29,8 @@ void sound_dev_init(void)
 
 	audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec, NULL, 0);
 	rpclog("audio_device=%u\n", audio_device);
+	if (audio_device == 0)
+		 rpclog("sound_sdl2: %s\n", SDL_GetError());
 
 	ddnoise_stream = SDL_NewAudioStream(AUDIO_S16SYS, 1, DDNOISE_FREQ, AUDIO_S16SYS, 2, OUTPUT_FREQ);
 
@@ -29,8 +39,14 @@ void sound_dev_init(void)
 
 void sound_dev_close(void)
 {
-	SDL_FreeAudioStream(ddnoise_stream);
-	SDL_CloseAudioDevice(audio_device);
+	/* Audio subsystem failed to start */
+	if (audio_device == 0 && ddnoise_stream == NULL)
+		return;
+	if (ddnoise_stream)
+		SDL_FreeAudioStream(ddnoise_stream);
+	if (audio_device != 0)
+		SDL_CloseAudioDevice(audio_device);
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 #define MAX_QUEUED_SIZE ((OUTPUT_FREQ * 4) / 5) /*200ms*/

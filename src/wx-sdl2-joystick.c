@@ -18,6 +18,10 @@ void joystick_init()
 {
 	int c;
 
+	if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
+		rpclog("wx-sdl2-joystick: SDL could not initialise joystick support: %s\n", SDL_GetError());
+		return;
+	}
 	joysticks_present = SDL_NumJoysticks();
 
 	memset(sdl_joy, 0, sizeof(sdl_joy));
@@ -60,6 +64,8 @@ void joystick_init()
 }
 void joystick_close()
 {
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
+		return;
 	int c;
 
 	for (c = 0; c < joysticks_present; c++)
@@ -67,6 +73,7 @@ void joystick_close()
 		if (sdl_joy[c])
 			SDL_JoystickClose(sdl_joy[c]);
 	}
+	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
 
 static int joystick_get_axis(int joystick_nr, int mapping)
