@@ -17,7 +17,13 @@ void sound_out_close(void *p)
 {
 	sdl_sound_t *sdl_sound = (sdl_sound_t *)p;
 
+	/* Audio subsystem failed to start */
+	if (sdl_sound == NULL)
+		return;
+
 	SDL_CloseAudioDevice(sdl_sound->audio_device);
+
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 	free(sdl_sound);
 }
@@ -31,7 +37,11 @@ void *sound_out_init(void *p, int freq, int buffer_size, void (*log)(const char 
 	sdl_sound->freq = freq;
 	sdl_sound->buffer_size = buffer_size;
 
-	SDL_Init(SDL_INIT_AUDIO);
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		//rpclog("sound_out_sdl2: SDL could not initialise audio support: %s\n", SDL_GetError());
+		free(sdl_sound);
+		return NULL;
+	}
 
 	audio_spec.freq = freq;
 	audio_spec.format = AUDIO_S16SYS;
@@ -56,6 +66,9 @@ void sound_out_buffer(void *p, int16_t *buf, int len)
 {
 	sdl_sound_t *sdl_sound = (sdl_sound_t *)p;
 
+	if (sdl_sound == NULL)
+		return;
+		
 	/*If we're already sufficiently ahead of the audio device then drop this buffer rather than
 	  allowing the queued audio to build up indefinitely*/
 	if (SDL_GetQueuedAudioSize(sdl_sound->audio_device) > (sdl_sound->buffer_size * 4 * 4))

@@ -18,7 +18,10 @@ void joystick_init(podule_t *podule, const podule_callbacks_t *podule_callbacks)
 {
 	int c;
 
-	SDL_Init(SDL_INIT_JOYSTICK);
+	if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
+		//rpclog("joystick_sdl2: SDL could not initialise joystick support: %s\n", SDL_GetError());
+		return;
+	}
 
 	joysticks_present = SDL_NumJoysticks();
 
@@ -96,6 +99,8 @@ void joystick_init(podule_t *podule, const podule_callbacks_t *podule_callbacks)
 }
 void joystick_close(void)
 {
+	if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0)
+		return;
 	int c;
 
 	for (c = 0; c < joysticks_present; c++)
@@ -103,6 +108,7 @@ void joystick_close(void)
 		if (sdl_joy[c])
 			SDL_JoystickClose(sdl_joy[c]);
 	}
+	SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 }
 
 static int joystick_get_axis(int joystick_nr, int mapping)
