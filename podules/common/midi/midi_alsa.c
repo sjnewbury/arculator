@@ -194,7 +194,8 @@ void midi_close(void *p)
 	midi_t *midi = p;
 
 	midi->in_thread_term = 1;
-	pthread_join(midi->in_thread, NULL);
+	if (midi->in_thread != 0)
+		pthread_join(midi->in_thread, NULL);
 
 	if (midi->in_device != NULL)
 	{
